@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sri Hari Designer</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta+Malar:wght@400;500;700&family=Yeseva+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbf8fc;--surface:#fff;--ink:#2b1636;--muted:#665372;--line:#e3d7ea;--rani:#b3135f;--zari:#a97b1e;--shadow:0 1px 2px rgba(43,22,54,.06),0 10px 28px rgba(43,22,54,.08);--f-display:'Yeseva One',serif;--f-body:'Mukta Malar',sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body)}.wrap{max-width:1120px;margin:auto;padding:0 16px}header{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line)}.top{display:flex;align-items:center;gap:12px;padding:12px 0}.brand{font-family:var(--f-display);font-size:22px}.zari{height:12px;background:var(--zari)}.btn{border:1px solid var(--line);background:#fff;padding:10px 16px;border-radius:999px;cursor:pointer}.btn.pri{background:var(--rani);color:#fff;border-color:var(--rani)}.btn.sm{padding:6px 12px;font-size:14px}.hero{padding:32px 0;display:grid;grid-template-columns:1.2fr .8fr;gap:20px}@media(max-width:800px){.hero{grid-template-columns:1fr}}.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}.input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px}.hide{display:none!important}.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}.modal-box{background:#fff;border-radius:18px;padding:20px;max-width:400px;width:100%}.thumb{width:100%;height:210px;object-fit:cover;border-radius:12px}
+</style></head><body>
+<div class="zari"></div>
+<header><div class="wrap top"><div class="brand">Sri Hari Designer</div><div style="margin-left:auto;display:flex;gap:8px"><span id="adminStatus" style="font-size:13px;color:var(--muted)"></span><button id="adminBtn" class="btn sm">Admin Login</button></div></div></header>
+<div class="wrap hero"><div><h1 style="font-family:var(--f-display);font-size:42px;line-height:1.05">Weaves from Komarapalayam</h1><p style="color:var(--muted);margin-top:10px">Visitor: view only. Admin: login to upload.</p><a href="#gallery" class="btn pri">View Collection</a></div><div class="card"><h3>Contact</h3><p>Komarapalayam - WhatsApp for orders</p></div></div>
+<div class="wrap"><input id="search" class="input" placeholder="Search..." style="max-width:320px;margin-bottom:12px"><div id="gallery" class="grid"></div></div>
+<div id="adminPanel" class="wrap hide" style="margin-top:24px"><div class="card" style="border:2px dashed var(--rani)"><h2 style="font-family:var(--f-display)">Admin Upload (Vercel)</h2><p style="font-size:13px;color:var(--muted)">Saved in browser. For permanent server storage use Render version.</p><div style="display:grid;gap:10px;margin-top:12px"><input id="upTitle" class="input" placeholder="Title"><select id="upCat" class="input"><option>Silk</option><option>Cotton</option><option>Powerloom</option><option>Handloom</option><option>Blouse</option></select><input id="upPrice" class="input" placeholder="Price"><input id="upFile" type="file" accept="image/*" class="input"><button id="upBtn" class="btn pri">Add Design</button><div id="upStatus"></div></div></div></div>
+<div id="loginModal" class="modal hide"><div class="modal-box"><h3>Admin Login</h3><div style="display:grid;gap:10px;margin-top:12px"><input id="loginUser" class="input" placeholder="Username"><input id="loginPass" type="password" class="input" placeholder="Password"><button id="loginSubmit" class="btn pri">Login</button><button id="loginCancel" class="btn">Cancel</button><div id="loginErr" style="color:#b3135f;font-size:13px"></div></div></div></div>
+<script>
+const ADMINS = [
+  {user:"srihari", hash:"dbd1f32d1d6ea6587192d33280f2f82d3f5646d7724b424ce25c70b5afc539e4"},
+  {user:"KATHIRVEL", hash:"2d56cd32c7da63e408a0fb5b4cd7f425b111d5408a93b8997071ea80129d98fc"}
+];
+async function sha256(text){ const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+const $=s=>document.querySelector(s);
+let DESIGNS=JSON.parse(localStorage.getItem('sh_designs')||'[]');
+let IS_ADMIN=localStorage.getItem('sh_admin')==='1';
+function render(){ const q=($('#search').value||'').toLowerCase(); const list=DESIGNS.filter(d=>!q||d.title.toLowerCase().includes(q)); const gallery=$('#gallery'); gallery.innerHTML=list.map(d=>`<div class=card><img class=thumb src="${d.image}"><h4>${d.title}</h4><div style="font-size:13px;color:var(--muted)">${d.category} - ₹${d.price||''}</div>${IS_ADMIN?`<button class="btn sm" style="margin-top:8px" onclick="deleteDesign('${d.id}')">Delete</button>`:''}</div>`).join('')||'<p>No designs yet - Admin login to add</p>'; if(IS_ADMIN){ $('#adminPanel').classList.remove('hide'); $('#adminStatus').textContent='Admin: '+localStorage.getItem('sh_user'); $('#adminBtn').textContent='Logout'; } else { $('#adminPanel').classList.add('hide'); $('#adminStatus').textContent=''; $('#adminBtn').textContent='Admin Login'; } }
+$('#search').addEventListener('input',render);
+$('#adminBtn').onclick=()=>{ if(IS_ADMIN){ localStorage.removeItem('sh_admin'); localStorage.removeItem('sh_user'); IS_ADMIN=false; render(); } else $('#loginModal').classList.remove('hide'); };
+$('#loginCancel').onclick=()=>$('#loginModal').classList.add('hide');
+$('#loginSubmit').onclick=async()=>{ const user=$('#loginUser').value.trim(); const pass=$('#loginPass').value; const hash=await sha256(pass); const ok=ADMINS.some(a=> a.user.toLowerCase()===user.toLowerCase() && a.hash===hash); if(ok){ localStorage.setItem('sh_admin','1'); localStorage.setItem('sh_user',user); IS_ADMIN=true; $('#loginModal').classList.add('hide'); render(); } else { $('#loginErr').textContent='Invalid username or password'; } };
+$('#upBtn').onclick=()=>{ const file=$('#upFile').files[0]; if(!file) return; const reader=new FileReader(); reader.onload=e=>{ const des={id:Date.now().toString(),title:$('#upTitle').value||'Untitled',category:$('#upCat').value,price:$('#upPrice').value,image:e.target.result}; DESIGNS.unshift(des); localStorage.setItem('sh_designs',JSON.stringify(DESIGNS)); $('#upStatus').textContent='Added!'; render(); }; reader.readAsDataURL(file); };
+window.deleteDesign=(id)=>{ DESIGNS=DESIGNS.filter(d=>d.id!==id); localStorage.setItem('sh_designs',JSON.stringify(DESIGNS)); render(); };
+render();
+</script>
+</body></html>
